@@ -1,0 +1,29 @@
+
+<?php
+	require "session_auth.php";
+	require 'database.php';
+	$username = $_POST["username"];
+	$freeze = $_POST["disena"];
+	$nocsrftoken = $_POST["nocrsftoken"];
+	if(!isset($nocsrftoken) or ($nocsrftoken != $_SESSION['nocsrftoken'])){
+		echo "<script>alert('Cross-site request forgery is detected!')</script>";
+		header("Refresh:0; url=logout.php");
+		die();
+	}
+	if (isset($username) or isset($freeze)) {
+    	if (updateprofile($username, $freeze)) {
+    		echo "<script>alert('Successfully updated profile');</script>";
+    		header("Refresh:0; url=index.php");
+       	}else{
+       		echo "<script>alert('Error: Cannot Update.')</script>";
+       		header("Refresh:0; url=index.php");
+       		die();
+        }
+	}else{
+		echo "<script>alert('Invalid info.');</script>";
+		header("Refresh:0; url=index.php");
+		die();
+	}
+
+?>
+

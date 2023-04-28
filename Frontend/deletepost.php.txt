@@ -1,0 +1,28 @@
+
+<?php
+	require "session_auth.php";
+	require 'database.php';
+	$postid = $_POST["postid"];
+	$nocsrftoken = $_POST["nocrsftoken"];
+	if(!isset($nocsrftoken) or ($nocsrftoken != $_SESSION['nocsrftoken'])){
+		echo "<script>alert('Cross-site request forgery is detected!')</script>";
+		header("Refresh:0; url=logout.php");
+		die();
+	}
+	if (isset($postid)) {
+    	if (deletepost($postid)) {
+    		echo "<script>alert('Successfully deleted post');</script>";
+    		header("Refresh:0; url=index.php");
+       	}else{
+       		echo "<script>alert('Error: Cannot delete.')</script>";
+       		header("Refresh:0; url=editpost.php");
+       		die();
+        }
+	}else{
+		echo "<script>alert('Invalid field info.');</script>";
+		header("Refresh:0; url=editpost.php");
+		die();
+	}
+
+?>
+

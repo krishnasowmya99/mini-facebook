@@ -1,0 +1,57 @@
+
+<?php
+	require "session_auth.php";
+	require 'database.php';
+	$postid = $_POST["postid"];
+	$title = $_POST["title"];
+	$desc = $_POST["content"];
+	$nocsrftoken = $_POST["nocrsftoken"];
+	echo "Got: title=$title : content=$desc";
+	if(!isset($nocsrftoken) or ($nocsrftoken != $_SESSION['nocsrftoken'])){
+		echo "<script>alert('Cross-site request forgery is detected!')</script>";
+		header("Refresh:0; url=logout.php");
+		die();
+	}
+	if (isset($title) and isset($desc)) {
+		if (empty($title) or empty($desc)){
+			echo "<script>alert('Title or description is empty!')</script>";
+			header("Refresh:0; url=editpost.php");
+			die();
+		}
+
+		$title = sanitize_input($title);
+		$desc = sanitize_input($desc);
+
+		if(!preg_match("/[A-Za-z]{3,100}/",$title) or !preg_match("/[A-Za-z]{3,100}/", $desc)){
+			regeXCheckFail();
+		}
+
+		echo "DEBUG:updatepost.php->Got: title=$title : content=$desc";
+    	if (updatepost($postid,$title,$desc,$name)) {
+    		echo "<script>alert('The post has been updated.');</script>";
+    		header("Refresh:0; url=index.php");
+       	}else{
+       		echo "<script>alert('Error: Cannot update.')</script>";
+       		header("Refresh:0; url=editpost.php");
+       		die();
+        }
+	}else{
+		echo "<script>alert('Invalid field info.');</script>";
+		header("Refresh:0; url=editpost.php");
+		die();
+	}
+
+	function regeXCheckFail(){
+		echo "<script>alert('Given data is not in correct format.')</script>";
+		header("Refresh:0; url=editpost.php");
+		die();
+	}
+
+	function sanitize_input($input){
+		$input = trim($input);
+		$input = stripslashes($input);
+		$input = htmlspecialchars($input);
+		return $input;
+	}
+?>
+

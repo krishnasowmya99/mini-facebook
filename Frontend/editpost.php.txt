@@ -1,0 +1,65 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Edit Post - DBMS2</title>
+</head>
+<body>
+  <h1>Edit (Update or Delete) Post, DBMS2</h1>
+  <h2>DBMS2 Project</h2>
+<?php
+  //some code here
+  $mysqli = new mysqli('localhost',
+                      'dbmsuser',
+                      'nn0411',
+                      'dbms');
+  if($mysqli->connect_errno){
+    printf("Database connection failed: %s\n", $mysqli->connect_errno);
+    exit();
+  }
+  echo "Current time: " . date("Y-m-d h:i:sa");
+  require "session_auth.php";
+  $postid = $_POST["postid"];
+  $nocsrftoken = $_POST["nocrsftoken"];
+  if(!isset($nocsrftoken) or ($nocsrftoken != $_SESSION['nocsrftoken'])){
+    echo "<script>alert('Cross-site request forgery is detected!')</script>";
+    header("Refresh:0; url=logout.php");
+    die();
+  }
+  if (!isset($postid)) {
+    echo "<script>alert('Invalid post.');</script>";
+    header("Refresh:0; url=index.php");
+    die();
+  }
+
+  global $mysqli;
+  $prepared_sql = "SELECT title, post_desc, post_owner FROM posts where post_id=?";
+  if (!$stmt = $mysqli->prepare($prepared_sql)) echo "Prepared Statement Error";
+  $stmt->bind_param("s", $postid);
+  if (!$stmt->execute()) echo "Execute Error";
+  $title = NULL;
+  $post_desc=NULL;
+  $post_owner = NULL;
+  if(!$stmt->bind_result($title, $post_desc, $post_owner)) echo "Binding failed";
+  if(!$stmt->store_result()) echo "Store_result error";
+  $stmt->fetch();
+?>
+  <form method="POST" class="editpostform">
+    Username: <?php echo htmlentities($post_owner); ?> 
+    <br>
+    Title: <input type="text" class="text_field" name="title" required pattern="[A-Za-z ]{3,100}" title="Please enter valid title" value="<?php echo $title; ?>" onchange="this.setCustomValidity(this.validity.patternMismatch?this.title: '');" />
+    <br>
+    <textarea name="content" rows="4" cols="50" required pattern="[A-Za-z ]{3,100}" title="Please give valid content" onchange="this.setCustomValidity(this.validity.patternMismatch?this.title: '');"><?php echo $post_desc; ?></textarea>
+    <input type="hidden" name="postid" value="<?php echo $postid; ?>"/>
+    <input type="hidden" name="nocrsftoken" value="<?php echo $nocsrftoken; ?>" />
+    <button class="button" type="submit" formaction="updatepost.php">
+      Update Post
+    </button>
+    <button class="button" type="submit" formaction="deletepost.php">
+      Delete Post
+    </button>
+  </form>
+</body>
+</html>
+
